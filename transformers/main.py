@@ -38,3 +38,20 @@ print(result2)
 # 'scores': [0.5757914185523987, 0.32652145624160767, 0.09768706560134888]}
 """
 
+# text generation
+
+generator = pipeline("text-generation")
+
+result3 = generator("In this course, we will teach you how to")
+
+print(result3)
+"""
+generator2 = pipeline("text-generation",model="orcarouter/Qwen3.8-27B-Uncensored-MLX")
+result4 = generator2(
+        " In this course, we will teach you how to",
+        max_length = 30,
+        num_return_sequence=2,
+)
+print(result4)
+"""
+
