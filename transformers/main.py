@@ -67,9 +67,9 @@ print(return2)
 
 # NER is a task where the model has to find which part of the input text correspond to entities such as persons,       locations, or organizations
 
-ner = pipeline("ner", grouped_entities=True) # grouped_entitiesb= True regroup the part of the sentence that correspond to the same entity
+# ner = pipeline("ner", grouped_entities=True) # grouped_entitiesb= True regroup the part of the sentence that correspond to the same entity
 
-result3 = ner("my name is sylvain and i work at google in new jersey")
+# result3 = ner("my name is sylvain and i work at google in new jersey")
 print(result3)
 
 
@@ -94,4 +94,19 @@ print(result3)
 # ATTENTION LAYERS
 
 # A key feature of Transformer models is that they are built with special layers called attention layers. In fact, the title of the paper introducing the Transformer architecture was “Attention Is All You Need”! We will explore the details of attention layers later in the course
+
+# There are two main approaches for training a transformer model:
+
+# Masked language modeling (MLM): Used by encoder models like BERT, this approach randomly masks some tokens in the input and trains the model to predict the original tokens based on the surrounding context. This allows the model to learn bidirectional context (looking at words both before and after the masked word).
+
+# Causal language modeling (CLM): Used by decoder models like GPT, this approach predicts the next token based on all previous tokens in the sequence. The model can only use context from the left (previous tokens) to predict the next token.
+
+# transcribe the video 
+from transformers import pipeline
+
+transcriber = pipeline("automatic-speech-recognition", model="openai/whisper-base.en")
+result5 = transcriber("https://huggingface.co/datasets/Narsil/asr_dummy/resolve/main/mlk.flac")
+print(result5)
+
+# output - {'text': ' I have a dream that one day this nation will rise up and live out the true meaning of its creed.'}
 
