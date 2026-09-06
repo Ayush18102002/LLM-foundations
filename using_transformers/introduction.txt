@@ -12,3 +12,4 @@ This last feature makes 🤗 Transformers quite different from other ML librarie
 This chapter will begin with an end-to-end example where we use a model and a tokenizer together to replicate the pipeline() function introduced in Chapter 1. Next, we’ll discuss the model API: we’ll dive into the model and configuration classes, and show you how to load a model and how it processes numerical inputs to output predictions.
 
 Then we’ll look at the tokenizer API, which is the other main component of the pipeline() function. Tokenizers take care of the first and last processing steps, handling the conversion from text to numerical inputs for the neural network, and the conversion back to text when it is needed. Finally, we’ll show you how to handle sending multiple sentences through a model in a prepared batch, then wrap it all up with a closer look at the high-level tokenizer() function.
+

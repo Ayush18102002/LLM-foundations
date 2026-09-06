@@ -80,3 +80,30 @@ encoded_input = tokenizer(
     ["How are you?", "I'm fine, thank you!"], padding=True, return_tensors="pt"
 )
 print(encoded_input)
+
+
+# truncating inputs
+"""
+The tensors might get too big to be processed by the model. For instance, BERT was only pretrained with sequences up to 512 tokens, so it cannot process longer sequences. If you have sequences longer than the model can handle, you’ll need to truncate them with the truncation parameter:
+
+
+"""
+
+encoded_input = tokenizer(
+    "this is a very very very very very very very very very very very very very very long sentence ",
+    truncation = True,
+)
+
+print(encoded_input["input_ids"])
+
+# by combining the padding and truncation arguments , you can also make sure your tensor have the exact size you need
+
+
+encoded_input = tokenizer(
+    ["How are you?", "I'm fine, thank you!"],
+    padding = True,
+    truncation=True,
+    max_length=5,
+    return_tensor="pt"
+)
+print(encoded_input)
