@@ -96,3 +96,63 @@ lr_scheduler = get_scheduler(
     num_training_steps=num_training_steps,
 )
 print(num_training_steps)
+
+"""
+output = 1337 steps
+
+How many training steps?
+
+Suppose:
+
+Training examples = 3668
+Batch size = 8
+
+Approximately:
+
+3668 / 8 ≈ 459 batches
+
+If we train for 3 epochs:
+
+459 × 3
+≈ 1377 training steps
+
+That's why the tutorial gets approximately:
+
+1377
+
+training steps.
+
+
+"""
+
+# choose cpua or gpu
+
+import torch
+
+device = (
+    torch.device("cuda")
+    if torch.cuda.is_available()
+    else torch.device("cpu")
+)
+
+
+# training loop
+
+from tqdm.auto import tqdm
+
+progress_bar = tqdm(range(num_training_steps))
+
+model.train()
+for epoch in range(num_epochs):
+    for batch in train_dataloader:
+        batch = {k: v.to(device) for k, v in batch.items()}
+        outputs = model(**batch)
+        loss = outputs.loss
+        loss.backward()
+
+        optimizer.step()
+        lr_scheduler.step()
+        optimizer.zero_grad()
+        progress_bar.update(1)
+
+
