@@ -174,3 +174,42 @@ for batch in eval_dataloader:
 metric.compute()
 
 # {'accuracy': 0.8431372549019608, 'f1': 0.8907849829351535}
+
+"""
+                 DATASET
+                    ↓
+               TOKENIZER
+                    ↓
+             DataCollator
+                    ↓
+               DataLoader
+                    ↓
+                  MODEL
+                    ↓
+              ┌───────────┐
+              │  TRAINING │
+              │   LOOP    │
+              └─────┬─────┘
+                    ↓
+              Forward pass
+                    ↓
+                  Loss
+                    ↓
+             loss.backward()
+                    ↓
+            optimizer.step()
+                    ↓
+           scheduler.step()
+                    ↓
+           optimizer.zero_grad()
+                    ↓
+              Next batch
+                    ↓
+              Next epoch
+                    ↓
+                EVALUATE
+                    ↓
+            Accuracy / F1
+
+
+"""
