@@ -39,7 +39,7 @@ tokenized_datasets = raw_datasets.map(
 model = AutoModelForSequenceClassification.from_pretrained(
     checkpoint,
     num_labels=2
-)S
+)
 
 
 # 6. Training settings
