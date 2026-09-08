@@ -46,4 +46,53 @@ for batch in train_dataloader:
     break
 {k: v.shape for k, v in batch.items()}
 
+"""
+{'labels': torch.Size([8]),
+ 'input_ids': torch.Size([8, 71]),
+ 'token_type_ids': torch.Size([8, 71]),
+ 'attention_mask': torch.Size([8, 71])}
 
+"""
+
+
+# create a model
+
+from transformers import AutoModelForSequenceClassification
+
+model = AutoModelForSequenceClassification.from_pretrained(checkpoint, num_labels=2)
+
+# test the model before training 
+output = model(**batch)
+print(output.loss, output.logits.shape)
+
+# output = tensor(0.7710, grad_fn=<NllLossBackward0>) torch.Size([8, 2])-- 8 examples * 2 classes
+
+# now comes the importtant part optimizer
+from torch.optim import AdamW
+
+optiizer = AdamW(
+    model.parameters(), 
+    lr=5e-5
+
+)
+
+# The thing that changes the model's weights to make the model better.
+
+# what is lr = 5e-5
+# lr means = learning ratee
+# it controls how big the model's upadates are
+# imagine you're walking toward the correct answer
+
+
+
+from transformers import get_scheduler
+
+num_epochs = 3
+num_training_steps = num_epochs * len(train_dataloader)
+lr_scheduler = get_scheduler(
+    "linear",
+    optimizer=optimizer,
+    num_warmup_steps=0,
+    num_training_steps=num_training_steps,
+)
+print(num_training_steps)
