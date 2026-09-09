@@ -146,3 +146,35 @@ trainer = Trainer(
     compute_metrics=compute_metrics,
     callbacks=[EarlyStoppingCallback(early_stopping_patience=3)],
 )
+
+
+# Underfitting 
+# it occurs when the model is too simple to capture the underlying patterins in the data
+
+"""
+1. The model is too small or lacks capacity to learn the patterns
+2. The learning rate is too low, causing slow learning
+3. The dataset is too small or not representative of the problem
+4. The model is not properly regularized
+
+Symptoms:
+
+Both training and validation loss remain high
+Model performance plateaus early in training
+Training accuracy is lower than expected
+Solutions for underfitting:
+
+Increase model capacity: Use a larger model or more parameters
+Train longer: Increase the number of epochs
+Adjust learning rate: Try different learning rates
+Check data quality: Ensure your data is properly preprocessed
+
+"""
+
+from transformers import TrainingArguments
+
+training_args = TrainingArguments(
+    output_dir="./results",
+    -num_train_epochs=5,
+    +num_train_epochs=10,
+)
