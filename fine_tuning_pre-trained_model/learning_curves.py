@@ -95,3 +95,54 @@ Trends: Would additional training likely improve performance?
 
 """
 
+# overfitting
+
+# it happens when the model learns too much from the training data and unable to generalize to different data 
+
+"""
+Symptoms:
+
+Training loss continues to decrease while validation loss increases or plateaus.
+
+Large gap between training and validation .
+
+Training accuracy much higher than validation accuracy.
+
+Solutions for overfitting:
+
+Regularization: Add dropout, weight decay, or other regularization techniques
+
+Early stopping: Stop training when validation performance stops improving
+
+Data augmentation: Increase training data diversity
+
+Reduce model complexity: Use a smaller model or fewer parameters
+
+"""
+
+# Example of detecting overfitting with early stopping
+from transformers import EarlyStoppingCallback
+
+training_args = TrainingArguments(
+    output_dir="./results",
+    eval_strategy="steps",
+    eval_steps=100,
+    save_strategy="steps",
+    save_steps=100,
+    load_best_model_at_end=True,
+    metric_for_best_model="eval_loss",
+    greater_is_better=False,
+    num_train_epochs=10,  # Set high, but we'll stop early
+)
+
+# Add early stopping to prevent overfitting
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_datasets["train"],
+    eval_dataset=tokenized_datasets["validation"],
+    data_collator=data_collator,
+    processing_class=tokenizer,
+    compute_metrics=compute_metrics,
+    callbacks=[EarlyStoppingCallback(early_stopping_patience=3)],
+)
