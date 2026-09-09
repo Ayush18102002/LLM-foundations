@@ -178,3 +178,36 @@ training_args = TrainingArguments(
     -num_train_epochs=5,
     +num_train_epochs=10,
 )
+
+"""
+Erratic Learning Curves
+Erratic learning curves occur when the model is not learning effectively. This can happen for several reasons:
+
+The learning rate is too high, causing the model to overshoot the optimal parameters
+The batch size is too small, causing the model to learn slowly
+The model is not properly regularized, causing it to overfit to the training data
+The dataset is not properly preprocessed, causing the model to learn from noise
+Symptoms:
+
+Frequent fluctuations in loss or accuracy
+Curves show high variance or instability
+Performance oscillates without clear trend
+Solutions for erratic curves:
+
+Lower learning rate: Reduce step size for more stable training
+Increase batch size: Larger batches provide more stable gradients
+Gradient clipping: Prevent exploding gradients
+Better data preprocessing: Ensure consistent data quality
+
+
+"""
+
+from transformers import TrainingArguments
+
+training_args = TrainingArguments(
+    output_dir="./results",
+    -learning_rate=1e-5,
+    +learning_rate=1e-4,
+    -per_device_train_batch_size=16,
+    +per_device_train_batch_size=32,
+)
