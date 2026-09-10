@@ -1,0 +1,11 @@
+1. Load a dataset from the Hugging Face Hub.
+2. Preprocess the data with Dataset.map().
+3. Load and compute metrics.
+
+But this is just scratching the surface of what  Datasets can do! In this chapter, we will take a deep dive into the library. Along the way, we’ll find answers to the following questions:
+
+1. What do you do when your dataset is not on the Hub?
+2. How can you slice and dice a dataset? (And what if you really need to use Pandas?)
+3. What do you do when your dataset is huge and will melt your laptop’s RAM?
+4. What the heck are “memory mapping” and Apache Arrow?
+5. How can you create your own dataset and push it to the Hub?
