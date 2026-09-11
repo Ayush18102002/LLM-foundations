@@ -313,3 +313,87 @@ DatasetDict({
 
 
 
+# dataset + DataFrames
+"""
+
+To enable the conversion between various third-party libraries, 🤗 Datasets provides a Dataset.set_format() function. This function only changes the output format of the dataset, so you can easily switch to another format without affecting the underlying data format, which is Apache Arrow. The formatting is done in place. To demonstrate, let’s convert our dataset to Pandas:
+"""
+
+
+drug_dataset.set_format("pandas")
+
+# Now when we access elements of the dataset we get a pandas.DataFrame instead of a dictionary:
+drug_dataset["train"][:3]
+
+# Let’s create a pandas.DataFrame for the whole training set by selecting all the elements of drug_dataset["train"]:
+
+train_df = drug_dataset["train"][:]
+
+"""
+🚨 Under the hood, Dataset.set_format() changes the return format for the dataset’s __getitem__() dunder method. This means that when we want to create a new object like train_df from a Dataset in the "pandas" format, we need to slice the whole dataset to obtain a pandas.DataFrame. You can verify for yourself that the type of drug_dataset["train"] is Dataset, irrespective of the output format.
+
+From here we can use all the Pandas functionality that we want. For example, we can do fancy chaining to compute the class distribution among the condition entries:
+
+"""
+frequencies = (
+    train_df["condition"]
+    .value_counts()
+    .to_frame()
+    .reset_index()
+    .rename(columns={"index": "condition", "count": "frequency"})
+)
+frequencies.head()
+
+
+## And once we’re done with our Pandas analysis, we can always create a new Dataset object by using the Dataset.from_pandas() function as follows:
+
+from datasets import Dataset
+
+freq_dataset = Dataset.from_pandas(frequencies)
+print(freq_dataset)
+
+
+Dataset({
+    features: ['condition', 'frequency'],
+    num_rows: 819
+})
+
+# This wraps up our tour of the various preprocessing techniques available in 🤗 Datasets. To round out the section, let’s create a validation set to prepare the dataset for training a classifier on. Before doing so, we’ll reset the output format of drug_dataset from "pandas" to "arrow":
+
+drug_dataset.reset_format()
+
+# create validation set
+
+"""
+Although we have a test set we could use for evaluation, it’s a good practice to leave the test set untouched and create a separate validation set during development. Once you are happy with the performance of your models on the validation set, you can do a final sanity check on the test set. This process helps mitigate the risk that you’ll overfit to the test set and deploy a model that fails on real-world data.
+
+🤗 Datasets provides a Dataset.train_test_split() function that is based on the famous functionality from scikit-learn. Let’s use it to split our training set into train and validation splits (we set the seed argument for reproducibility):
+
+"""
+
+drug_dataset_clean = drug_dataset["train"].train_test_split(train_size=0.8, seed=42)
+# Rename the default "test" split to "validation"
+drug_dataset_clean["validation"] = drug_dataset_clean.pop("test")
+# Add the "test" set to our `DatasetDict`
+drug_dataset_clean["test"] = drug_dataset["test"]
+print(drug_dataset_clean)
+
+"""
+
+DatasetDict({
+    train: Dataset({
+        features: ['patient_id', 'drugName', 'condition', 'review', 'rating', 'date', 'usefulCount', 'review_length', 'review_clean'],
+        num_rows: 110811
+    })
+    validation: Dataset({
+        features: ['patient_id', 'drugName', 'condition', 'review', 'rating', 'date', 'usefulCount', 'review_length', 'review_clean'],
+        num_rows: 27703
+    })
+    test: Dataset({
+        features: ['patient_id', 'drugName', 'condition', 'review', 'rating', 'date', 'usefulCount', 'review_length', 'review_clean'],
+        num_rows: 46108
+    })
+})
+
+"""
+
