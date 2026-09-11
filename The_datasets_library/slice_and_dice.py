@@ -396,4 +396,93 @@ DatasetDict({
 })
 
 """
+#m Saving a dataset
+"""
 
+Although 🤗 Datasets will cache every downloaded dataset and the operations performed on it, there are times when you’ll want to save a dataset to disk (e.g., in case the cache gets deleted). As shown in the table below, 🤗 Datasets provides three main functions to save your dataset in different formats:
+
+Data format	Function
+Arrow	Dataset.save_to_disk()
+CSV	Dataset.to_csv()
+JSON	Dataset.to_json()
+For example, let’s save our cleaned dataset in the Arrow format:
+
+
+
+
+"""
+
+drug_dataset_clean.save_to_disk("drug-reviews")
+
+"""
+drug-reviews/
+├── dataset_dict.json
+├── test
+│   ├── dataset.arrow
+│   ├── dataset_info.json
+│   └── state.json
+├── train
+│   ├── dataset.arrow
+│   ├── dataset_info.json
+│   ├── indices.arrow
+│   └── state.json
+└── validation
+    ├── dataset.arrow
+    ├── dataset_info.json
+    ├── indices.arrow
+    └── state.json
+
+
+
+where we can see that each split is associated with its own dataset.arrow table, and some metadata in dataset_info.json and state.json. You can think of the Arrow format as a fancy table of columns and rows that is optimized for building high-performance applications that process and transport large datasets.
+
+Once the dataset is saved, we can load it by using the load_from_disk() function as follows:
+
+
+
+"""
+from datasets import load_from_disk
+
+drug_dataset_reloaded = load_from_disk("drug-reviews")
+print(drug_dataset_reloaded)
+
+
+"""
+output
+
+DatasetDict({
+    train: Dataset({
+        features: ['patient_id', 'drugName', 'condition', 'review', 'rating', 'date', 'usefulCount', 'review_length'],
+        num_rows: 110811
+    })
+    validation: Dataset({
+        features: ['patient_id', 'drugName', 'condition', 'review', 'rating', 'date', 'usefulCount', 'review_length'],
+        num_rows: 27703
+    })
+    test: Dataset({
+        features: ['patient_id', 'drugName', 'condition', 'review', 'rating', 'date', 'usefulCount', 'review_length'],
+        num_rows: 46108
+    })
+})
+
+
+
+"""
+
+# For the CSV and JSON formats, we have to store each split as a separate file. One way to do this is by iterating over the keys and values in the DatasetDict object:
+
+for split, dataset in drug_dataset_clean.items():
+    dataset.to_json(f"drug-reviews-{split}.jsonl")
+
+
+!head -n 1 drug-reviews-train.jsonl
+
+# {"patient_id":141780,"drugName":"Escitalopram","condition":"depression","review":"\"I seemed to experience the regular side effects of LEXAPRO, insomnia, low sex drive, sleepiness during the day. I am taking it at night because my doctor said if it made me tired to take it at night. I assumed it would and started out taking it at night. Strange dreams, some pleasant. I was diagnosed with fibromyalgia. Seems to be helping with the pain. Have had anxiety and depression in my family, and have tried quite a few other medications that haven't worked. Only have been on it for two weeks but feel more positive in my mind, want to accomplish more in my life. Hopefully the side effects will dwindle away, worth it to stick with it from hearing others responses. Great medication.\"","rating":9.0,"date":"May 29, 2011","usefulCount":10,"review_length":125}
+
+
+data_files = {
+    "train": "drug-reviews-train.jsonl",
+    "validation": "drug-reviews-validation.jsonl",
+    "test": "drug-reviews-test.jsonl",
+}
+drug_dataset_reloaded = load_dataset("json", data_files=data_files)
