@@ -221,3 +221,95 @@ def slow_tokenize_function(examples):
 tokenized_dataset = drug_dataset.map(slow_tokenize_function, batched=True, num_proc=8)
 
 
+"""
+Those are much more reasonable results for the slow tokenizer, but the performance of the fast tokenizer was also substantially improved. Note, however, that won’t always be the case — for values of num_proc other than 8, our tests showed that it was faster to use batched=True without that option. In general, we don’t recommend using Python multiprocessing for fast tokenizers with batched=True.
+
+Using num_proc to speed up your processing is usually a great idea, as long as the function you are using is not already doing some kind of multiprocessing of its own.
+
+All of this functionality condensed into a single method is already pretty amazing, but there’s more! With Dataset.map() and batched=True you can change the number of elements in your dataset. This is super useful in many situations where you want to create several training features from one example, and we will need to do this as part of the preprocessing for several of the NLP tasks we’ll undertake in Chapter 7.
+
+💡 In machine learning, an example is usually defined as the set of features that we feed to the model. In some contexts, these features will be the set of columns in a Dataset, but in others (like here and for question answering), multiple features can be extracted from a single example and belong to a single column.
+
+Let’s have a look at how it works! Here we will tokenize our examples and truncate them to a maximum length of 128, but we will ask the tokenizer to return all the chunks of the texts instead of just the first one. This can be done with return_overflowing_tokens=True:
+
+"""
+
+def tokenize_and_split(examples):
+    return tokenizer(
+        examples["review"],
+        truncation=True,
+        max_length=128,
+        return_overflowing_tokens=True,
+    )
+
+# Let’s test this on one example before using Dataset.map() on the whole dataset:
+
+result = tokenize_and_split(drug_dataset["train"][0])
+[len(inp) for inp in result["input_ids"]]
+
+
+"""
+
+So, our first example in the training set became two features because it was tokenized to more than the maximum number of tokens we specified: the first one of length 128 and the second one of length 49. Now let’s do this for all elements of the dataset!
+"""
+
+tokenized_dataset = drug_dataset.map(tokenize_and_split, batched=True)
+
+# output - ArrowInvalid: Column 1 named condition expected length 1463 but got length 1000
+
+"""
+ Looking at the error message will give us a clue: there is a mismatch in the lengths of one of the columns, one being of length 1,463 and the other of length 1,000. If you’ve looked at the Dataset.map() documentation, you may recall that it’s the number of samples passed to the function that we are mapping; here those 1,000 examples gave 1,463 new features, resulting in a shape error.
+
+The problem is that we’re trying to mix two different datasets of different sizes: the drug_dataset columns will have a certain number of examples (the 1,000 in our error), but the tokenized_dataset we are building will have more (the 1,463 in the error message; it is more than 1,000 because we are tokenizing long reviews into more than one example by using return_overflowing_tokens=True). That doesn’t work for a Dataset, so we need to either remove the columns from the old dataset or make them the same size as they are in the new dataset. We can do the former with the remove_columns argument:
+
+"""
+
+tokenized_dataset = drug_dataset.map(
+    tokenize_and_split, batched=True, remove_columns=drug_dataset["train"].column_names
+)
+
+ # Now this works without error. We can check that our new dataset has many more elements than the original dataset by comparing the lengths:
+
+len(tokenized_dataset["train"]), len(drug_dataset["train"])
+
+
+"""
+We mentioned that we can also deal with the mismatched length problem by making the old columns the same size as the new ones. To do this, we will need the overflow_to_sample_mapping field the tokenizer returns when we set return_overflowing_tokens=True. It gives us a mapping from a new feature index to the index of the sample it originated from. Using this, we can associate each key present in our original dataset with a list of values of the right size by repeating the values of each example as many times as it generates new features:
+
+
+
+"""
+def tokenize_and_split(examples):
+    result = tokenizer(
+        examples["review"],
+        truncation=True,
+        max_length=128,
+        return_overflowing_tokens=True,
+    )
+    # Extract mapping between new and old indices
+    sample_map = result.pop("overflow_to_sample_mapping")
+    for key, values in examples.items():
+        result[key] = [values[i] for i in sample_map]
+    return result
+
+tokenized_dataset = drug_dataset.map(tokenize_and_split, batched=True)
+print(tokenized_dataset)
+
+
+"""
+output
+
+DatasetDict({
+    train: Dataset({
+        features: ['attention_mask', 'condition', 'date', 'drugName', 'input_ids', 'patient_id', 'rating', 'review', 'review_length', 'token_type_ids', 'usefulCount'],
+        num_rows: 206772
+    })
+    test: Dataset({
+        features: ['attention_mask', 'condition', 'date', 'drugName', 'input_ids', 'patient_id', 'rating', 'review', 'review_length', 'token_type_ids', 'usefulCount'],
+        num_rows: 68876
+    })
+})
+"""
+
+
+
