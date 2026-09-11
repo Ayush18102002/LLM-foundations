@@ -180,3 +180,24 @@ html.unescape(text)
 drug_dataset = drug_dataset.map(lambda x: {"review": html.unescape(x["review"])})
 # As you can see, the Dataset.map() method is quite useful for processing data — and we haven’t even scratched the surface of everything it can do!
 
+# the Map() method's superpowers
+
+# the Dataset.map() method takes a batched argument that if set to true, cause it to send a batch 
+# the mao function at once ( the batch size is configurable but default to 1,000).
+# the previous map functionthat unescaped all the HTML took a bit of time to run.
+
+new_drug_dataset = drug_dataset.map(
+    lambda x : {"review": [html.unescape(o) for o in x["review"]]}, batched = True
+)
+
+# Using Dataset.map() with batched=True will be essential to unlock the speed of the “fast” tokenizers that we’ll encounter
+
+from transformers import AutoTokenizer
+
+tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+
+def tokenize_function(example):
+    return tokenizer(example["review"],truncation=True)
+
+
+%time tokenized_dataset = drug_dataset.map(tokenize_function, batched=True)
