@@ -201,3 +201,23 @@ def tokenize_function(example):
 
 
 %time tokenized_dataset = drug_dataset.map(tokenize_function, batched=True)
+
+"""
+This means that using a fast tokenizer with the batched=True option is 30 times faster than its slow counterpart with no batching — this is truly amazing! That’s the main reason why fast tokenizers are the default when using AutoTokenizer (and why they are called “fast”). They’re able to achieve such a speedup because behind the scenes the tokenization code is executed in Rust, which is a language that makes it easy to parallelize code execution.
+
+Parallelization is also the reason for the nearly 6x speedup the fast tokenizer achieves with batching: you can’t parallelize a single tokenization operation, but when you want to tokenize lots of texts at the same time you can just split the execution across several processes, each responsible for its own texts.
+
+Dataset.map() also has some parallelization capabilities of its own. Since they are not backed by Rust, they won’t let a slow tokenizer catch up with a fast one, but they can still be helpful (especially if you’re using a tokenizer that doesn’t have a fast version). To enable multiprocessing, use the num_proc argument and specify the number of processes to use in your call to Dataset.map():
+
+"""
+
+slow_tokenizer = AutoTokenizer.from_pretrained("bert-base-cased", use_fast=False)
+
+
+def slow_tokenize_function(examples):
+    return slow_tokenizer(examples["review"], truncation=True)
+
+
+tokenized_dataset = drug_dataset.map(slow_tokenize_function, batched=True, num_proc=8)
+
+
